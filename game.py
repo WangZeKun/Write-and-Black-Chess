@@ -55,7 +55,7 @@ elif FLAGS.model == "dnn":
         network, n_units=64, act=tf.identity, name="output_layer")
 
 sess.run(tf.global_variables_initializer())
-params = tl.files.load_npz(name="model.npz")
+params = tl.files.load_npz(path = "models",name="\\model.npz")
 tl.files.assign_params(sess, params, network)
 y = network.outputs
 y_op = tf.nn.softmax(y)

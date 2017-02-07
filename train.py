@@ -15,8 +15,8 @@ FLAGS = flags.FLAGS
 sess = tf.InteractiveSession()
 
 # 加载测试样本
-X_Val = np.loadtxt("1 (2).txt", delimiter=" ")
-y_Val = np.loadtxt("2 (2).txt", delimiter=" ")
+X_Val = np.loadtxt(os.path.join("data","1 (2).txt"), delimiter=" ")
+y_Val = np.loadtxt(os.path.join("data","2 (2).txt"), delimiter=" ")
 X_Val = np.asarray(X_Val, dtype=np.float32)
 y_Val = np.asarray(y_Val, dtype=np.int64)
 
@@ -79,14 +79,16 @@ if __name__ == "__main__":
     # 训练模型
     for i in range(5):
         try:
-            params = tl.files.load_npz(name="model.npz")
+            params = tl.files.load_npz(path="models",name="\\model.npz")
             tl.files.assign_params(sess, params, network)
             print("成功读取模型！")
         except:
             print("读取模型失败!")
 
-        X_train = np.loadtxt(str(1000 * i + 1000) + "_1.txt", delimiter=" ")
-        y_train = np.loadtxt(str(1000 * i + 1000) + "_2.txt", delimiter=" ")
+        X_train = np.loadtxt(os.path.join("data", str(
+            1000 * i + 1000)+"_1.txt"), delimiter=" ")
+        y_train = np.loadtxt(os.path.join("data", str(
+            1000 * i + 1000)+"_2.txt"), delimiter=" ")
         if FLAGS.model == "cnn":
             X_train = np.array(X_train).reshape(X_train.shape[0], 8, 8, 1)
         else:
@@ -95,4 +97,4 @@ if __name__ == "__main__":
         y_train = np.asarray(y_train, dtype=np.int64)
         tl.utils.fit(sess, network, train_op, cost, X_train, y_train, x, y_,
                      n_epoch=FLAGS.epoch, print_freq=FLAGS.print_freq, batch_size=FLAGS.batch_size, X_val=X_Val, y_val=y_Val)
-        tl.files.save_npz(network.all_params, name="model.npz")
+        tl.files.save_npz(network.all_params, path = "models",name="\\model.npz")
