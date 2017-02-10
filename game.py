@@ -116,8 +116,14 @@ def get_place():
             map_flat.append(x)
     if color == 2:
         for i in range(64):
-            if map_flat[i] != 0:
-                map_flat[i] = 3 - map_flat[i]
+            if map_flat[i] == 2:
+                map_flat[i] = 1
+            if map_flat[i] == 1:
+                map_flat[i] == -1
+    else:
+        for i in range(64):
+            if map_flat[i] == 2:
+                map_flat[i]=-1
 
     ans = xiaqi(map_flat)
     for x in ans:

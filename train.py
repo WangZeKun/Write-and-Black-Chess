@@ -1,10 +1,12 @@
+#coding=utf-8 
+
 import tensorflow as tf
 import tensorlayer as tl
 import numpy as np
 import os
 
 flags = tf.app.flags
-flags.DEFINE_string("model", "dnn", "选择训练模型")
+flags.DEFINE_string("model", "cnn", "选择训练模型")
 flags.DEFINE_integer("epoch", 1000, "迭代次数")
 flags.DEFINE_float("learning_rate", 0.001, "学习速率")
 flags.DEFINE_integer("print_freq", 5, "每多少次迭代打印一次")
@@ -27,18 +29,18 @@ if FLAGS.model == "cnn":
     y_ = tf.placeholder(tf.int64, shape=[None, ], name="y_")
 
     network = tl.layers.InputLayer(x, name="input_layer")
-    network = tl.layers.Conv2dLayer(network, act=tf.nn.relu, shape=[3, 3, 1, 16],
-                                    strides=[1, 1, 1, 1], padding="SAME", name="cnn_layer1")  # output:(?,6,6,16)
+    network = tl.layers.Conv2dLayer(network,act=tf.nn.relu,shape=[1,1,1,16],strides=[1, 1, 1, 1], padding="SAME", name="cnn_layer1")
+    network = tl.layers.Conv2dLayer(network, act=tf.nn.relu, shape=[3, 3, 16, 32],
+                                    strides=[1, 1, 1, 1], padding="SAME", name="cnn_layer2")  # output:(?,6,6,16)
+    network = tl.layers.Conv2dLayer(network,act=tf.nn.relu,shape=[1,1,32,64],strides=[1, 1, 1, 1], padding="SAME", name="cnn_layer3")
     network = tl.layers.PoolLayer(network, ksize=[1, 2, 2, 1], strides=[
                                   1, 2, 2, 1], padding="SAME", pool=tf.nn.max_pool, name="pool_layer1")  # output:(?,3,3,16)
     network = tl.layers.FlattenLayer(
         network, name="faltten_layer")  # output:(?,128)
-    network = tl.layers.DropoutLayer(network, keep=0.5, name="drop1")
-    network = tl.layers.DenseLayer(
-        network, n_units=256, act=tf.nn.relu, name="relu")
     network = tl.layers.DropoutLayer(network, keep=0.5, name="drop2")
     network = tl.layers.DenseLayer(
         network, n_units=64, act=tf.identity, name="output_layer")
+        
 elif FLAGS.model == "dnn":
     X_Val = np.array(X_Val).reshape(X_Val.shape[0], 64)
     x = tf.placeholder(tf.float32, shape=[None, 64], name="x")
@@ -63,6 +65,7 @@ else:
 y = network.outputs
 cost = tl.cost.cross_entropy(y, y_)
 correct_prediction = tf.equal(tf.argmax(y, 1), y_)
+acc = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 y_op = tf.argmax(tf.nn.softmax(y), 1)
 # 定义 optimizer
 train_params = network.all_params
@@ -95,6 +98,6 @@ if __name__ == "__main__":
             X_train = np.array(X_train).reshape(X_train.shape[0], 64)
         X_train = np.asarray(X_train, dtype=np.float32)
         y_train = np.asarray(y_train, dtype=np.int64)
-        tl.utils.fit(sess, network, train_op, cost, X_train, y_train, x, y_,
-                     n_epoch=FLAGS.epoch, print_freq=FLAGS.print_freq, batch_size=FLAGS.batch_size, X_val=X_Val, y_val=y_Val)
+        tl.utils.fit(sess, network, train_op, cost, X_train, y_train, x, y_,acc=acc,
+                        n_epoch=FLAGS.epoch, print_freq=FLAGS.print_freq, batch_size=FLAGS.batch_size, X_val=X_Val, y_val=y_Val)
         tl.files.save_npz(network.all_params, path = "models",name="\\model.npz")
